@@ -3,7 +3,7 @@ const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const Database = require('./config/database');
 const fs = require('fs');
 const path = require('path');
-const EmbedUtils = require('./utils/EmbedUtils');
+const EmbedUtils = require('./utils/embeds');
 const sorteioCmd = require('./commands/sorteio.js');
 
 // Criar cliente Discord
