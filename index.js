@@ -3,6 +3,8 @@ const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const Database = require('./config/database');
 const fs = require('fs');
 const path = require('path');
+const EmbedUtils = require('./utils/EmbedUtils');
+const sorteioCmd = require('./commands/sorteio.js');
 
 // Criar cliente Discord
 const client = new Client({
@@ -59,6 +61,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
 
             await command.execute(interaction);
+        }
+        // Handler dos botões do sorteio
+        if (interaction.isButton() && ['join_giveaway', 'leave_giveaway'].includes(interaction.customId)) {
+            return sorteioCmd.handleButton(interaction);
         }
     } catch (error) {
         console.error('Erro ao processar comando:', error);
