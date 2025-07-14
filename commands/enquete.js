@@ -16,7 +16,7 @@ module.exports = {
             option.setName('duracao')
                 .setDescription('Duração da enquete (ex: 1h, 30m, 1d)')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {
@@ -37,7 +37,6 @@ module.exports = {
                             { name: '📝 Exemplos válidos', value: '`30s`, `5m`, `2h`, `1d`', inline: false }
                         )
                         .setTimestamp();
-                    
                     return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
                 duration = seconds * 1000;
@@ -59,7 +58,6 @@ module.exports = {
                             { name: '📝 Exemplo', value: '`Sim,Não,Talvez`', inline: false }
                         )
                         .setTimestamp();
-                    
                     return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
                 if (options.length > 10) {
@@ -68,7 +66,6 @@ module.exports = {
                         .setTitle('❌ Muitas Opções')
                         .setDescription('Você pode ter no máximo 10 opções.')
                         .setTimestamp();
-                    
                     return interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 }
             }
@@ -90,11 +87,9 @@ module.exports = {
             // Criar botões para as opções
             const rows = [];
             const buttonsPerRow = 5;
-            
             for (let i = 0; i < options.length; i += buttonsPerRow) {
                 const row = new ActionRowBuilder();
                 const rowOptions = options.slice(i, i + buttonsPerRow);
-                
                 rowOptions.forEach((option, index) => {
                     const buttonIndex = i + index;
                     row.addComponents(
@@ -104,7 +99,6 @@ module.exports = {
                             .setStyle(ButtonStyle.Primary)
                     );
                 });
-                
                 rows.push(row);
             }
 
@@ -127,13 +121,12 @@ module.exports = {
                 ended: false
             };
 
-            // Simular armazenamento
             global.polls = global.polls || new Map();
             global.polls.set(response.id, pollData);
 
             // Configurar timer para finalizar a enquete
             setTimeout(() => {
-                endPoll(response.id);
+                endPoll(response.id, interaction.client);
             }, duration);
 
         } catch (error) {
@@ -143,7 +136,6 @@ module.exports = {
                 .setTitle('❌ Erro')
                 .setDescription('Ocorreu um erro ao criar a enquete.')
                 .setTimestamp();
-            
             await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
     }
@@ -152,12 +144,9 @@ module.exports = {
 function parseDuration(durationStr) {
     const regex = /^(\d+)([smhd])$/;
     const match = durationStr.toLowerCase().match(regex);
-    
     if (!match) return null;
-    
     const value = parseInt(match[1]);
     const unit = match[2];
-    
     switch (unit) {
         case 's': return value;
         case 'm': return value * 60;
@@ -167,26 +156,21 @@ function parseDuration(durationStr) {
     }
 }
 
-async function endPoll(messageId) {
+async function endPoll(messageId, client) {
     try {
         const poll = global.polls.get(messageId);
         if (!poll || poll.ended) return;
-
         poll.ended = true;
         global.polls.set(messageId, poll);
-
-        const channel = await global.client.channels.fetch(poll.channelId);
+        const channel = await client.channels.fetch(poll.channelId);
         const message = await channel.messages.fetch(messageId);
-
         if (!message) return;
-
         // Calcular resultados
         const totalVotes = poll.votes.reduce((sum, votes) => sum + votes, 0);
         const maxVotes = Math.max(...poll.votes);
         const winners = poll.votes.map((votes, index) => ({ votes, index }))
             .filter(item => item.votes === maxVotes && item.votes > 0)
             .map(item => item.index);
-
         // Criar embed de resultado
         const resultEmbed = new EmbedBuilder()
             .setColor('#2ed573')
@@ -198,8 +182,7 @@ async function endPoll(messageId) {
             ])
             .setThumbnail(channel.guild.iconURL({ dynamic: true }))
             .setTimestamp()
-            .setFooter({ text: 'Lonex - Sistema de Enquetes', iconURL: global.client.user.displayAvatarURL({ dynamic: true }) });
-
+            .setFooter({ text: 'Lonex - Sistema de Enquetes', iconURL: client.user.displayAvatarURL({ dynamic: true }) });
         // Adicionar resultados detalhados
         const results = poll.options.map((option, index) => {
             const votes = poll.votes[index];
@@ -207,17 +190,13 @@ async function endPoll(messageId) {
             const bar = createProgressBar(votes, totalVotes);
             return `**${index + 1}. ${option}**\n${bar} ${votes} votos (${percentage}%)`;
         });
-
         resultEmbed.addFields({ name: '📊 Resultados Detalhados', value: results.join('\n\n'), inline: false });
-
         // Botões desabilitados
         const disabledRows = [];
         const buttonsPerRow = 5;
-        
         for (let i = 0; i < poll.options.length; i += buttonsPerRow) {
             const row = new ActionRowBuilder();
             const rowOptions = poll.options.slice(i, i + buttonsPerRow);
-            
             rowOptions.forEach((option, index) => {
                 const buttonIndex = i + index;
                 row.addComponents(
@@ -228,12 +207,9 @@ async function endPoll(messageId) {
                         .setDisabled(true)
                 );
             });
-            
             disabledRows.push(row);
         }
-
         await message.edit({ embeds: [resultEmbed], components: disabledRows });
-
     } catch (error) {
         console.error('Erro ao finalizar enquete:', error);
     }
@@ -241,52 +217,40 @@ async function endPoll(messageId) {
 
 function createProgressBar(votes, total) {
     if (total === 0) return '▱▱▱▱▱▱▱▱▱▱';
-    
     const percentage = votes / total;
     const filled = Math.round(percentage * 10);
     const empty = 10 - filled;
-    
     return '▰'.repeat(filled) + '▱'.repeat(empty);
 }
 
 // Event handler para botões da enquete
 module.exports.handleButton = async (interaction) => {
     if (!interaction.isButton()) return;
-
     const poll = global.polls.get(interaction.message.id);
     if (!poll) return;
-
     if (interaction.customId.startsWith('poll_')) {
         if (poll.ended) {
             return interaction.reply({ content: '❌ Esta enquete já foi finalizada.', ephemeral: true });
         }
-
         const optionIndex = parseInt(interaction.customId.split('_')[1]);
         const userId = interaction.user.id;
-
         // Verificar se o usuário já votou
         const userVotedIndex = poll.voters.findIndex(voters => voters.includes(userId));
-        
         if (userVotedIndex !== -1) {
             // Remover voto anterior
             poll.votes[userVotedIndex]--;
             poll.voters[userVotedIndex] = poll.voters[userVotedIndex].filter(id => id !== userId);
         }
-
         // Adicionar novo voto
         poll.votes[optionIndex]++;
         poll.voters[optionIndex].push(userId);
-
         global.polls.set(interaction.message.id, poll);
-
         // Atualizar embed
         const embed = EmbedBuilder.from(interaction.message.embeds[0]);
         const totalVotes = poll.votes.reduce((sum, votes) => sum + votes, 0);
         embed.fields[1].value = `${totalVotes} votos`;
-
         await interaction.message.edit({ embeds: [embed] });
-        
         const action = userVotedIndex !== -1 ? 'alterou seu voto para' : 'votou em';
         await interaction.reply({ content: `✅ Você ${action} **${poll.options[optionIndex]}**!`, ephemeral: true });
     }
-}; 
+};

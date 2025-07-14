@@ -8,15 +8,13 @@ module.exports = {
         .setDescription('🧹 Limpa mensagens do canal')
         .addIntegerOption(option =>
             option.setName('quantidade')
-                .setDescription('Número de mensagens para deletar (1-100)')
-                .setRequired(true)
-                .setMinValue(1)
-                .setMaxValue(100))
+                .setDescription('Quantidade de mensagens a deletar')
+                .setRequired(true))
         .addUserOption(option =>
             option.setName('usuario')
-                .setDescription('Deletar apenas mensagens deste usuário')
+                .setDescription('Limpar mensagens apenas deste usuário')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

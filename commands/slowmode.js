@@ -3,22 +3,20 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('disc
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('slowmode')
-        .setDescription('🐌 Define o modo lento de um canal')
+        .setDescription('Define modo lento')
         .addIntegerOption(option =>
             option.setName('segundos')
-                .setDescription('Segundos entre mensagens (0-21600)')
-                .setRequired(true)
-                .setMinValue(0)
-                .setMaxValue(21600))
+                .setDescription('Tempo em segundos (0 para desativar)')
+                .setRequired(true))
         .addChannelOption(option =>
             option.setName('canal')
-                .setDescription('Canal para definir modo lento (padrão: canal atual)')
+                .setDescription('Canal para aplicar o modo lento')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('motivo')
                 .setDescription('Motivo para definir modo lento')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

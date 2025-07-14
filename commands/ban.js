@@ -20,7 +20,7 @@ module.exports = {
                 .setMinValue(0)
                 .setMaxValue(7)
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

@@ -4,36 +4,20 @@ const Database = require('../config/database');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('purge')
-        .setDescription('🗑️ Limpeza avançada de mensagens')
+        .setDescription('Limpeza avançada com filtros')
         .addIntegerOption(option =>
             option.setName('quantidade')
-                .setDescription('Número de mensagens para deletar (1-100)')
-                .setRequired(true)
-                .setMinValue(1)
-                .setMaxValue(100))
-        .addStringOption(option =>
-            option.setName('tipo')
-                .setDescription('Tipo de mensagens para deletar')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Todas', value: 'all' },
-                    { name: 'Apenas texto', value: 'text' },
-                    { name: 'Apenas embeds', value: 'embeds' },
-                    { name: 'Apenas arquivos', value: 'files' },
-                    { name: 'Apenas links', value: 'links' },
-                    { name: 'Apenas imagens', value: 'images' },
-                    { name: 'Apenas vídeos', value: 'videos' },
-                    { name: 'Apenas áudio', value: 'audio' }
-                ))
+                .setDescription('Quantidade de mensagens a deletar')
+                .setRequired(true))
         .addUserOption(option =>
             option.setName('usuario')
-                .setDescription('Deletar apenas mensagens deste usuário')
+                .setDescription('Limpar mensagens apenas deste usuário')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('contem')
-                .setDescription('Deletar apenas mensagens que contenham este texto')
+            option.setName('contendo')
+                .setDescription('Limpar mensagens contendo esta palavra')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

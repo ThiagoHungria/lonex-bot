@@ -4,7 +4,7 @@ const Database = require('../config/database');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('unlock')
-        .setDescription('🔓 Destrava um canal para permitir mensagens')
+        .setDescription('Destrava um canal')
         .addChannelOption(option =>
             option.setName('canal')
                 .setDescription('Canal a ser destravado (padrão: canal atual)')
@@ -13,7 +13,7 @@ module.exports = {
             option.setName('motivo')
                 .setDescription('Motivo para destravar o canal')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

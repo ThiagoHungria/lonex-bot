@@ -13,7 +13,7 @@ module.exports = {
             option.setName('motivo')
                 .setDescription('Motivo do desmute')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

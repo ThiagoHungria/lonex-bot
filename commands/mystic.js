@@ -4,7 +4,8 @@ const Database = require('../config/database');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('mystic')
-        .setDescription('🔮 Dá mute no Mystic por 1h com motivo fixo.'),
+        .setDescription('🔮 Dá mute no Mystic por 1h com motivo fixo.')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
         try {
             const userId = '1327078145039532042';

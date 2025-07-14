@@ -5,7 +5,7 @@ const EmbedUtils = require('../utils/embeds');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('kick')
-        .setDescription('👢 Expulsa um usuário do servidor')
+        .setDescription('Expulsa um usuário do servidor')
         .addUserOption(option =>
             option.setName('usuario')
                 .setDescription('Usuário a ser expulso')
@@ -14,7 +14,7 @@ module.exports = {
             option.setName('motivo')
                 .setDescription('Motivo da expulsão')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {

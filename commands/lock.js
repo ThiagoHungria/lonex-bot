@@ -13,7 +13,7 @@ module.exports = {
             option.setName('motivo')
                 .setDescription('Motivo para travar o canal')
                 .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         try {
