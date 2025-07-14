@@ -46,15 +46,4 @@ logger.on('data', (log) => {
   }
 });
 
-// Para winston >=3, usar custom transport para hook
-logger.add(new transports.Stream({
-  stream: {
-    write: (msg) => {
-      if (msg.includes('[ERROR]')) {
-        sendToDiscordWebhook('error', msg);
-      }
-    }
-  }
-}));
-
 module.exports = logger; 
