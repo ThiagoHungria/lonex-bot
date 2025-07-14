@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const Database = require('../config/database');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,6 +18,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[WARN] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const user = interaction.options.getUser('usuario');
             const reason = interaction.options.getString('motivo') || 'Nenhum motivo especificado';
 
@@ -104,7 +106,7 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Erro ao avisar usuário:', error);
+            logger.error(`[WARN] Erro ao executar warn: ${error}`);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')
                 .setTitle('❌ Erro')

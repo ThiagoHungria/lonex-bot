@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Database = require('../config/database');
 const EmbedUtils = require('../utils/embeds');
+const logger = require('../utils/logger');
+const { canUseCommand } = require('../utils/permission');
+const feedback = require('../utils/feedback');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,7 +24,11 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
+        if (!(await canUseCommand(interaction, 'mute'))) {
+            return interaction.reply({ embeds: [feedback.acessoNegado()], ephemeral: true });
+        }
         try {
+            logger.info(`[MUTE] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const user = interaction.options.getUser('usuario');
             const durationStr = interaction.options.getString('duracao');
             const reason = interaction.options.getString('motivo') || 'Nenhum motivo especificado';
@@ -206,14 +213,8 @@ module.exports = {
             });
 
         } catch (error) {
-            console.error('Erro no comando mute:', error);
-            const errorEmbed = new EmbedBuilder()
-                .setColor('#ff4757')
-                .setTitle('❌ Erro')
-                .setDescription('Ocorreu um erro ao executar o comando.')
-                .setTimestamp();
-            
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            logger.error(`[MUTE] Erro ao executar mute: ${error}`);
+            return interaction.reply({ embeds: [feedback.erro('Ocorreu um erro ao executar o comando.')], ephemeral: true });
         }
     }
 };

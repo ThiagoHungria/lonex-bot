@@ -81,6 +81,16 @@ class Database {
             )
         `;
 
+        // Tabela de permissões customizadas
+        const createPermissionsTable = `
+            CREATE TABLE IF NOT EXISTS permissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                command TEXT NOT NULL,
+                role_id TEXT NOT NULL
+            )
+        `;
+
         this.db.run(createModLogsTable, (err) => {
             if (err) {
                 console.error('Erro ao criar tabela mod_logs:', err);
@@ -118,6 +128,14 @@ class Database {
                 console.error('Erro ao criar tabela stats:', err);
             } else {
                 console.log('✅ Tabela stats criada/verificada');
+            }
+        });
+
+        this.db.run(createPermissionsTable, (err) => {
+            if (err) {
+                console.error('Erro ao criar tabela permissions:', err);
+            } else {
+                console.log('✅ Tabela permissions criada/verificada');
             }
         });
     }
@@ -303,6 +321,35 @@ class Database {
                 } else {
                     resolve(row);
                 }
+            });
+        });
+    }
+
+    // Permissões customizadas
+    setCommandPermission(guildId, command, roleId) {
+        return new Promise((resolve, reject) => {
+            const query = `INSERT INTO permissions (guild_id, command, role_id) VALUES (?, ?, ?)`;
+            this.db.run(query, [guildId, command, roleId], function(err) {
+                if (err) reject(err);
+                else resolve(this.lastID);
+            });
+        });
+    }
+    removeCommandPermission(guildId, command, roleId) {
+        return new Promise((resolve, reject) => {
+            const query = `DELETE FROM permissions WHERE guild_id = ? AND command = ? AND role_id = ?`;
+            this.db.run(query, [guildId, command, roleId], function(err) {
+                if (err) reject(err);
+                else resolve(this.changes);
+            });
+        });
+    }
+    getCommandPermissions(guildId, command) {
+        return new Promise((resolve, reject) => {
+            const query = `SELECT role_id FROM permissions WHERE guild_id = ? AND command = ?`;
+            this.db.all(query, [guildId, command], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows.map(r => r.role_id));
             });
         });
     }

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const Database = require('../config/database');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,6 +9,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
         try {
+            logger.info(`[MYSTIC] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const userId = '1327078145039532042';
             const reason = 'para de ser chato mystic';
             const duration = 3600; // 1 hora em segundos
@@ -80,6 +82,7 @@ module.exports = {
                 }
             }
         } catch (error) {
+            logger.error(`[MYSTIC] Erro ao executar comando: ${error}`);
             console.error('Erro ao mutar Mystic:', error);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')

@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const Database = require('../config/database');
 const EmbedUtils = require('../utils/embeds');
+const logger = require('../utils/logger');
+const { canUseCommand } = require('../utils/permission');
+const feedback = require('../utils/feedback');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +20,11 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
+        if (!(await canUseCommand(interaction, 'clear'))) {
+            return interaction.reply({ embeds: [feedback.acessoNegado()], ephemeral: true });
+        }
         try {
+            logger.info(`[CLEAR] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const amount = interaction.options.getInteger('quantidade');
             const user = interaction.options.getUser('usuario');
 
@@ -114,17 +121,9 @@ module.exports = {
             }
 
         } catch (error) {
+            logger.error(`[CLEAR] Erro ao executar clear: ${error}`);
             console.error('Erro ao limpar mensagens:', error);
-            const errorEmbed = new EmbedBuilder()
-                .setColor('#ff4757')
-                .setTitle('❌ Erro')
-                .setDescription('Ocorreu um erro ao limpar as mensagens.')
-                .addFields(
-                    { name: '🔍 Possíveis Causas', value: '• Mensagens muito antigas (14+ dias)\n• Permissões insuficientes\n• Erro de conexão', inline: false }
-                )
-                .setTimestamp();
-            
-            await interaction.editReply({ embeds: [errorEmbed] });
+            return interaction.reply({ embeds: [feedback.erro('Ocorreu um erro ao limpar as mensagens.')], ephemeral: true });
         }
     }
 }; 

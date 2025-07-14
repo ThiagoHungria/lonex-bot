@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,6 +12,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[8BALL] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const question = interaction.options.getString('pergunta');
 
             // Respostas da bola 8 mágica
@@ -79,6 +81,7 @@ module.exports = {
             await interaction.reply({ embeds: [embed] });
 
         } catch (error) {
+            logger.error(`[8BALL] Erro ao executar 8ball: ${error}`);
             console.error('Erro ao consultar bola 8:', error);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')

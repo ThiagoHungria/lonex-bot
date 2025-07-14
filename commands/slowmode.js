@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,6 +21,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[SLOWMODE] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const seconds = interaction.options.getInteger('segundos');
             const channel = interaction.options.getChannel('canal') || interaction.channel;
             const reason = interaction.options.getString('motivo') || 'Nenhum motivo especificado';
@@ -86,7 +88,7 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Erro ao configurar modo lento:', error);
+            logger.error(`[SLOWMODE] Erro ao executar slowmode: ${error}`);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')
                 .setTitle('❌ Erro')

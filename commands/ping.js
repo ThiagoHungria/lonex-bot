@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -7,6 +8,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[PING] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const sent = await interaction.reply({ 
                 content: '🏓 Calculando ping...', 
                 fetchReply: true 
@@ -47,6 +49,7 @@ module.exports = {
             await interaction.editReply({ content: null, embeds: [embed] });
 
         } catch (error) {
+            logger.error(`[PING] Erro ao executar ping: ${error}`);
             console.error('Erro ao calcular ping:', error);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 const Database = require('../config/database');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -27,6 +28,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[SORTEIO] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const prize = interaction.options.getString('premio');
             const winners = interaction.options.getInteger('vencedores');
             const durationStr = interaction.options.getString('duracao');
@@ -133,6 +135,7 @@ module.exports = {
             }, duration);
 
         } catch (error) {
+            logger.error(`[SORTEIO] Erro ao criar sorteio: ${error}`);
             console.error('Erro ao criar sorteio:', error);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')

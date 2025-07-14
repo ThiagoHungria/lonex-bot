@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel LonexBOT</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #18191c; color: #fff; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 40px auto; background: #23272a; border-radius: 8px; padding: 32px; box-shadow: 0 2px 8px #0008; }
+    h1 { color: #7289da; }
+    .info { margin: 16px 0; }
+    a { color: #43b581; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .status { font-weight: bold; color: #43b581; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>LonexBOT - Painel de Status</h1>
+    <div class="info">
+      <strong>Status do Bot:</strong> <span class="status"><%= status %></span><br>
+      <strong>Uptime:</strong> <%= Math.floor(uptime/60) %> min <%= Math.floor(uptime%60) %> seg<br>
+      <strong>Memória:</strong> <%= (memory/1024/1024).toFixed(2) %> MB<br>
+      <strong>Data/Hora:</strong> <%= date.toLocaleString('pt-BR') %>
+    </div>
+    <a href="/logs">Ver logs do bot</a>
+  </div>
+</body>
+</html> 

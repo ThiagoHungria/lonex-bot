@@ -1,5 +1,8 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Database = require('../config/database');
+const logger = require('../utils/logger');
+const { canUseCommand } = require('../utils/permission');
+const feedback = require('../utils/feedback');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,7 +19,11 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
+        if (!(await canUseCommand(interaction, 'lock'))) {
+            return interaction.reply({ embeds: [feedback.acessoNegado()], ephemeral: true });
+        }
         try {
+            logger.info(`[LOCK] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const channel = interaction.options.getChannel('canal') || interaction.channel;
             const reason = interaction.options.getString('motivo') || 'Nenhum motivo especificado';
 
@@ -101,91 +108,42 @@ ${'⚠️'} Ninguém poderá enviar mensagens até destravar.`)
                         const successEmbed = new EmbedBuilder()
                             .setColor('#ff4757')
                             .setTitle('🔒・Canal Travado com Sucesso!')
-                            .setDescription(`🔒 ${channel} foi travado!
-
-${'🔹'} **Motivo:** ${reason}`)
-                            .addFields(
-                                { name: '📝 Canal', value: `${channel} (${channel.id})`, inline: true },
-                                { name: '👮‍♂️ Travado por', value: `${interaction.user}`, inline: true },
-                                { name: '📅 Data', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
-                            )
-                            .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
+                            .setDescription(`🔒 ${channel} foi travado!\n\n🔹 **Motivo:** ${reason}`)
                             .setTimestamp()
-                            .setFooter({ text: 'Lonex ・ Sistema de Moderação', iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }) });
+                            .setFooter({ text: `Solicitado por ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) });
 
-                        await i.update({ embeds: [successEmbed], components: [] });
-
-                        // Mensagem no canal travado
-                        const lockEmbed = new EmbedBuilder()
-                            .setColor('#ff4757')
-                            .setTitle('🔒・Canal Travado')
-                            .setDescription('🔒 Este canal foi travado temporariamente. Aguarde um moderador destravar.')
-                            .addFields(
-                                { name: '👮‍♂️ Travado por', value: `${interaction.user}`, inline: true },
-                                { name: '📝 Motivo', value: reason, inline: true }
-                            )
-                            .setTimestamp();
-                        await channel.send({ embeds: [lockEmbed] });
-
-                        // Log no canal de logs
-                        const config = await db.getGuildConfig(interaction.guild.id);
-                        if (config?.log_channel_id) {
-                            const logChannel = interaction.guild.channels.cache.get(config.log_channel_id);
-                            if (logChannel) {
-                                const logEmbed = new EmbedBuilder()
-                                    .setColor('#ff4757')
-                                    .setTitle('🔒・Log de Travamento')
-                                    .setDescription(`🔒 Um canal foi travado no servidor.`)
-                                    .addFields(
-                                        { name: '📝 Canal', value: `${channel} (${channel.id})`, inline: true },
-                                        { name: '👮‍♂️ Travado por', value: `${interaction.user} (${interaction.user.id})`, inline: true },
-                                        { name: '📅 Data', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                                        { name: '🔹 Motivo', value: reason, inline: false }
-                                    )
-                                    .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
-                                    .setTimestamp()
-                                    .setFooter({ text: 'Lonex ・ Sistema de Logs', iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }) });
-                                await logChannel.send({ embeds: [logEmbed] });
-                            }
-                        }
+                        return interaction.followUp({ embeds: [successEmbed], ephemeral: true });
                     } catch (error) {
-                        console.error('Erro ao travar canal:', error);
+                        logger.error(`[LOCK] Erro ao travar canal: ${error.message}`);
                         const errorEmbed = new EmbedBuilder()
                             .setColor('#ff4757')
-                            .setTitle('❌ Erro')
-                            .setDescription('Ocorreu um erro ao travar o canal.')
-                            .setTimestamp();
-                        await i.update({ embeds: [errorEmbed], components: [] });
+                            .setTitle('❌ Erro ao Travar Canal')
+                            .setDescription('Ocorreu um erro ao tentar travar o canal.');
+                        return interaction.followUp({ embeds: [errorEmbed], ephemeral: true });
                     }
-                } else if (i.customId === 'cancel_lock') {
+                }
+
+                if (i.customId === 'cancel_lock') {
                     const cancelEmbed = new EmbedBuilder()
-                        .setColor('#747d8c')
-                        .setTitle('🔴・Ação Cancelada')
-                        .setDescription('O travamento foi cancelado.')
-                        .setTimestamp();
-                    await i.update({ embeds: [cancelEmbed], components: [] });
+                        .setColor('#ff4757')
+                        .setTitle('🔴・Travamento Cancelado')
+                        .setDescription('Travamento do canal cancelado pelo usuário.');
+                    return interaction.followUp({ embeds: [cancelEmbed], ephemeral: true });
                 }
             });
 
-            collector.on('end', async (collected) => {
+            collector.on('end', collected => {
                 if (collected.size === 0) {
                     const timeoutEmbed = new EmbedBuilder()
-                        .setColor('#747d8c')
-                        .setTitle('⏰・Tempo Expirado')
-                        .setDescription('O tempo para confirmar o travamento expirou.')
-                        .setTimestamp();
-                    await interaction.editReply({ embeds: [timeoutEmbed], components: [] });
+                        .setColor('#ff4757')
+                        .setTitle('⚠️・Travamento Expirado')
+                        .setDescription('Travamento do canal não foi confirmado dentro do tempo limite.');
+                    return interaction.followUp({ embeds: [timeoutEmbed], ephemeral: true });
                 }
             });
-
         } catch (error) {
-            console.error('Erro no comando lock:', error);
-            const errorEmbed = new EmbedBuilder()
-                .setColor('#ff4757')
-                .setTitle('❌ Erro')
-                .setDescription('Ocorreu um erro ao executar o comando.')
-                .setTimestamp();
-            await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            logger.error(`[LOCK] Erro inesperado: ${error.message}`);
+            return interaction.reply({ embeds: [feedback.erro('Ocorreu um erro inesperado ao tentar travar o canal.')], ephemeral: true });
         }
-    }
-}; 
+    },
+};

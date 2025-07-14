@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const EmbedUtils = require('../utils/embeds');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,6 +13,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[HELP] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const commandName = interaction.options.getString('comando');
 
             if (commandName) {
@@ -133,7 +135,7 @@ module.exports = {
             }
 
         } catch (error) {
-            console.error('Erro ao mostrar ajuda:', error);
+            logger.error(`[HELP] Erro ao mostrar ajuda: ${error}`);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')
                 .setTitle('❌ Erro')

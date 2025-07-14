@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const Database = require('../config/database');
 const EmbedUtils = require('../utils/embeds');
+const logger = require('../utils/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,6 +14,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            logger.info(`[USERINFO] Comando executado por ${interaction.user.tag} (${interaction.user.id}) no servidor ${interaction.guild?.name || 'DM'} (${interaction.guild?.id || 'DM'})`);
             const user = interaction.options.getUser('usuario') || interaction.user;
             const member = await interaction.guild.members.fetch(user.id).catch(() => null);
 
@@ -108,7 +110,7 @@ module.exports = {
             await interaction.reply({ embeds: [embed] });
 
         } catch (error) {
-            console.error('Erro ao buscar informações do usuário:', error);
+            logger.error(`[USERINFO] Erro ao executar userinfo: ${error}`);
             const errorEmbed = new EmbedBuilder()
                 .setColor('#ff4757')
                 .setTitle('❌ Erro')

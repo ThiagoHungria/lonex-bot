@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const EmbedUtils = require('./utils/embeds');
 const sorteioCmd = require('./commands/sorteio.js');
+const logger = require('./utils/logger');
 
 // Criar cliente Discord
 const client = new Client({
@@ -32,18 +33,18 @@ for (const file of commandFiles) {
     
     if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
-        console.log(`✅ Comando carregado: ${command.data.name}`);
+        logger.info(`✅ Comando carregado: ${command.data.name}`);
     } else {
-        console.log(`⚠️ Comando em ${filePath} está faltando propriedades obrigatórias.`);
+        logger.warn(`⚠️ Comando em ${filePath} está faltando propriedades obrigatórias.`);
     }
 }
 
 // Evento: Bot pronto
 client.once(Events.ClientReady, () => {
-    console.log(`🤖 ${client.user.tag} está online!`);
-    console.log(`📊 Servindo ${client.guilds.cache.size} servidores`);
-    console.log(`👥 Total de ${client.users.cache.size} usuários`);
-    console.log(`⚡ ${client.commands.size} comandos carregados`);
+    logger.info(`🤖 ${client.user.tag} está online!`);
+    logger.info(`📊 Servindo ${client.guilds.cache.size} servidores`);
+    logger.info(`👥 Total de ${client.users.cache.size} usuários`);
+    logger.info(`⚡ ${client.commands.size} comandos carregados`);
     
     // Definir status do bot
     client.user.setActivity('Lonex', { type: 'WATCHING' });
@@ -56,7 +57,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             const command = client.commands.get(interaction.commandName);
             
             if (!command) {
-                console.error(`Comando ${interaction.commandName} não encontrado.`);
+                logger.error(`Comando ${interaction.commandName} não encontrado.`);
                 return;
             }
 
@@ -67,7 +68,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             return sorteioCmd.handleButton(interaction);
         }
     } catch (error) {
-        console.error('Erro ao processar comando:', error);
+        logger.error('Erro ao processar comando:', error);
         
         const errorMessage = {
             content: '❌ Ocorreu um erro ao executar este comando.',
@@ -109,7 +110,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
         await db.updateStats(member.guild.id, stats);
 
     } catch (error) {
-        console.error('Erro ao processar novo membro:', error);
+        logger.error('Erro ao processar novo membro:', error);
     }
 });
 
@@ -121,7 +122,7 @@ client.on(Events.GuildMemberRemove, async (member) => {
         stats.total_members = member.guild.memberCount;
         await db.updateStats(member.guild.id, stats);
     } catch (error) {
-        console.error('Erro ao processar saída de membro:', error);
+        logger.error('Erro ao processar saída de membro:', error);
     }
 });
 
@@ -137,29 +138,29 @@ client.on(Events.MessageCreate, async (message) => {
         await db.updateStats(message.guild.id, stats);
 
     } catch (error) {
-        console.error('Erro ao processar mensagem:', error);
+        logger.error('Erro ao processar mensagem:', error);
     }
 });
 
 // Evento: Erro não capturado
 process.on('unhandledRejection', (error) => {
-    console.error('Erro não capturado:', error);
+    logger.error('Erro não capturado:', error);
 });
 
 process.on('uncaughtException', (error) => {
-    console.error('Exceção não capturada:', error);
+    logger.error('Exceção não capturada:', error);
 });
 
 // Evento: Sinal de encerramento
 process.on('SIGINT', () => {
-    console.log('\n🔄 Encerrando bot...');
+    logger.info('\n🔄 Encerrando bot...');
     db.close();
     client.destroy();
     process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-    console.log('\n🔄 Encerrando bot...');
+    logger.info('\n🔄 Encerrando bot...');
     db.close();
     client.destroy();
     process.exit(0);
@@ -175,13 +176,13 @@ const requiredEnvVars = [
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-    console.error('❌ Variáveis de ambiente ausentes:', missingVars.join(', '));
-    console.error('Por favor, configure o arquivo .env com todas as variáveis necessárias.');
+    logger.error('❌ Variáveis de ambiente ausentes:', missingVars.join(', '));
+    logger.error('Por favor, configure o arquivo .env com todas as variáveis necessárias.');
     process.exit(1);
 }
 
 // Conectar ao Discord
 client.login(process.env.DISCORD_TOKEN).catch(error => {
-    console.error('❌ Erro ao fazer login:', error);
+    logger.error('❌ Erro ao fazer login:', error);
     process.exit(1);
 }); 
