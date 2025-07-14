@@ -19,6 +19,7 @@
   "author": "Lonex Store",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.10.0",
     "basic-auth": "^2.0.1",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
