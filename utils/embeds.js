@@ -247,4 +247,19 @@ class EmbedUtils {
     }
 }
 
-module.exports = EmbedUtils; 
+function createWelcomeEmbed(member) {
+  return new EmbedBuilder()
+    .setColor('#43b581')
+    .setTitle('👋 Bem-vindo ao servidor!')
+    .setDescription(`Olá, ${member}!
+
+Seja muito bem-vindo(a) ao **${member.guild.name}**! Esperamos que você aproveite bastante o servidor.\n\n> 📅 Conta criada em: <t:${Math.floor(member.user.createdTimestamp / 1000)}:D>\n> 🆔 ID: ${member.user.id}`)
+    .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+    .setImage('https://media.discordapp.net/attachments/1126950000000000000/1126950000000000000/welcome_banner.png') // Banner customizável
+    .setFooter({ text: 'Aproveite sua estadia!', iconURL: member.guild.iconURL({ dynamic: true }) })
+    .setTimestamp();
+}
+
+module.exports = {
+  createWelcomeEmbed
+}; 
